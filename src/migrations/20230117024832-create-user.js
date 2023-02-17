@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.TEXT
       },
       role: {
-        type: Sequelize.ENUM('admin', 'esepsionis')
+        type: Sequelize.ENUM('admin', 'resepsionis')
       },
       createdAt: {
         allowNull: false,
