@@ -188,7 +188,18 @@ exports.delete = async (req, res) => {
             } else {
                 await DetailPemesanan.destroy({
                     where: {id_pemesanan}
-                }).then
+                })
+                await Pemesanan.destroy({
+                    where: {id_pemesanan}
+                }).then(
+                    () => res.json({
+                        message: 'Berhasil menghapus data'
+                    })
+                ).catch(
+                    err => res.json({
+                        message: err.message
+                    })
+                )
             }
         }
     )
