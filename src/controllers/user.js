@@ -6,38 +6,48 @@ const fs = require('fs')
 
 const User = require('../models/index').user
 
-exports.user = async (req, res) => {
+exports.login = async (req, res) => {
     let data = {
         ...req.body,
         password: md5(req.body.password)
     }
-    switch (req.query.action) {
-        case 'login':
-            await User.findOne({
-                where: data,
-                attributes: ['id_user', 'nama_user', 'foto', 'role']
+    await User.findOne({
+        where: data,
+        attributes: ['id_user', 'role']
+    })
+    .then(result => {
+        if (result) {
+            let token = createToken(result)
+            return res.json({
+                message: 'Berhasil Login',
+                logged: true,
+                token,
+                data: result
             })
-            .then(result => {
-                if (result) {
-                    let token = createToken(result)
-                    return res.json({
-                        message: 'Berhasil Login',
-                        logged: true,
-                        token,
-                        data: result
-                    })
-                }
-                return res.json({
-                    message: `username ${data.nama_user} tidak ditemukan atau password tidak cocok`
-                })
-            })
-            .catch(err => res.json({
-                message: err.message,
-                logged: false
-            }))
-            break
-        case 'register':
-            data.foto = req.file.filename
+        }
+        return res.json({
+            message: `username ${data.nama_user} tidak ditemukan atau password tidak cocok`
+        })
+    })
+    .catch(err => res.json({
+        message: err.message,
+        logged: false
+    }))
+}
+
+exports.register = async (req, res) => {
+    let data = {
+        ...req.body,
+        password: md5(req.body.password),
+        foto: req.file.filename
+    }
+    await User.findAll({
+        where: {
+            nama_user: data.nama_user
+        }
+    })
+    .then(async result => {
+        if (result.length == 0) {
             await User.create(data)
             .then(() => res.json({
                 message: 'Berhasil Registrasi'
@@ -45,13 +55,15 @@ exports.user = async (req, res) => {
             .catch(err =>  res.json({
                 message: err.message
             }))
-            break
-        default:
+        } else {
             return res.json({
-                message: 'query action is require',
-                query: ['register', 'login']
+                message: 'Username sudah digunakan'
             })
-    }
+        }
+    })
+    .catch(err => res.json({
+        message: err.message
+    }))
 }
 
 exports.findAll = async (_req, res) => {
@@ -92,6 +104,11 @@ exports.update = async (req, res) => {
         attributes: ['foto']
     })
     .then(result => {
+        if (!result) {
+            return res.json({
+                message: 'Data tidak ditemukan'
+            })
+        }
         oldFileName = result.foto
     })
     .catch(err => res.json({
@@ -123,6 +140,11 @@ exports.delete = async (req, res) => {
         attributes: ['foto']
     })
     .then(result => {
+        if (!result) {
+            return res.json({
+                message: 'Data tidak ditemukan'
+            })
+        }
         let oldFileName = result.foto
         let location = path.join(__dirname, '../../public/img', oldFileName)
         fs.unlink(location, error => console.log(error))

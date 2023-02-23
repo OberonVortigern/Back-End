@@ -11,6 +11,7 @@ const port = 8000
 app.use(morgan('dev'))
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
 app.use(express.static('public'))
 
 router.forEach(router => app.use(router.prefix, router.route))

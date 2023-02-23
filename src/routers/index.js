@@ -10,6 +10,10 @@ const router = [
     {
         prefix: '/tipe',
         route: require('./tipe_kamar')
+    },
+    {
+        prefix: '/pemesanan',
+        route: require('./pemesanan')
     }
 ]
 
